@@ -25,7 +25,7 @@ export default defineNuxtConfig({
     "@vueuse/nuxt",
     "@nuxtjs/i18n",
     "@nuxtjs/tailwindcss",
-    "nuxt-security",
+
     "@nuxtjs/turnstile",
     "@nuxt/icon",
     "nuxt-lucide-icons",
