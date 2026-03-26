@@ -5,6 +5,14 @@ export default defineNuxtConfig({
   pages: true,
   nitro: {
     preset: "cloudflare-pages",
+    cloudflare: {
+      pages: {
+        defaultRoutes: {
+          exclude: [],
+        },
+      },
+    },
+    compatibilityFlags: ["nodejs_compat"],
   },
   modules: [
     "@nuxtjs/supabase",
