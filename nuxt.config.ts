@@ -23,7 +23,7 @@ export default defineNuxtConfig({
     "nuxt-lucide-icons",
   ],
   supabase: {
-    redirect: true,
+    redirect: false,
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
