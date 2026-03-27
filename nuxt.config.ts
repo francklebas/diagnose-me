@@ -31,10 +31,10 @@ export default defineNuxtConfig({
     "nuxt-lucide-icons",
   ],
   colorMode: {
-    preference: "system", // Use system preference as initial value
-    fallback: "dark", // Default to dark mode if system preference is not available
-    classSuffix: "", // Remove suffix to get 'dark' instead of 'dark-mode'
-    classPrefix: "", // Remove prefix
+    preference: "system",
+    fallback: "dark",
+    hid: "nuxt-color-mode-script",
+    globalName: "__NUXT_COLOR_MODE__",
   },
   supabase: {
     redirect: false,

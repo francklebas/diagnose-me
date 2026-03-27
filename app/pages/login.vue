@@ -1,6 +1,13 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-    <Card class="w-full max-w-md">
+  <div class="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <!-- Header with Dark Mode Toggle -->
+    <div class="flex justify-end mb-8">
+      <DarkModeToggle />
+    </div>
+
+    <!-- Login Card -->
+    <div class="flex items-center justify-center flex-1">
+      <Card class="w-full max-w-md">
       <CardHeader class="text-center">
         <CardTitle class="text-3xl font-bold text-blue-600">Se connecter</CardTitle>
         <CardDescription>Accédez à votre compte Decisional Client</CardDescription>
@@ -52,7 +59,8 @@
           </NuxtLink>
         </p>
       </CardFooter>
-    </Card>
+      </Card>
+    </div>
   </div>
 </template>
 

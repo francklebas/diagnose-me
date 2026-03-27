@@ -1,40 +1,47 @@
 <template>
-  <div :class="{ dark: isDark }">
+  <div>
     <NuxtPage />
   </div>
 </template>
 
 <script setup lang="ts">
-const { isDark } = useDarkMode()
-
-// Apply dark class to html element for Tailwind dark mode
 const colorMode = useColorMode()
 
+// Watch colorMode changes and apply the 'dark' class for Tailwind
 watch(
   () => colorMode.value,
   (value) => {
-    if (import.meta.client) {
+    if (process.client) {
       const html = document.documentElement
+
+      // Remove the 'dark-mode' class that color-mode adds by default
+      html.classList.remove("dark-mode")
+      html.classList.remove("light-mode")
+
+      // Add our custom 'dark' class for Tailwind
       if (value === "dark") {
         html.classList.add("dark")
+        html.style.colorScheme = "dark"
       } else {
         html.classList.remove("dark")
+        html.style.colorScheme = "light"
       }
     }
   },
   { immediate: true }
 )
+
+// Also watch preference changes
+watch(
+  () => colorMode.preference,
+  () => {
+    console.log("Dark mode preference changed to:", colorMode.preference)
+    console.log("Current value:", colorMode.value)
+  }
+)
 </script>
 
-<style scoped>
-/* Ensure proper text colors for dark and light modes */
-:global(html.dark) {
-  @apply bg-slate-950 text-slate-100;
-}
 
-:global(html) {
-  @apply bg-white text-slate-900;
-}
-</style>
+
 
 

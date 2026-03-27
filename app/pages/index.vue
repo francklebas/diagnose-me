@@ -8,6 +8,11 @@
           <span class="text-xl font-bold text-white">Decisional Client</span>
         </div>
         <div class="flex items-center gap-3">
+          <!-- Dark Mode Toggle - Prominent Position -->
+          <div class="pl-3 border-l border-slate-600">
+            <DarkModeToggle />
+          </div>
+
           <template v-if="user">
             <Badge class="bg-green-500/20 text-green-200 border-green-500/50">
               {{ user.email }}

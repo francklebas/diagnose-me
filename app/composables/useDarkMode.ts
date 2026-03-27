@@ -8,6 +8,7 @@ export const useDarkMode = () => {
   const isDark = computed(() => colorMode.value === "dark")
 
   const toggleDarkMode = () => {
+    // Directly set the preference to toggle
     colorMode.preference = isDark.value ? "light" : "dark"
   }
 
@@ -17,7 +18,6 @@ export const useDarkMode = () => {
 
   return {
     isDark,
-    colorMode: colorMode as any,
     toggleDarkMode,
     setDarkMode,
   }
