@@ -8,6 +8,8 @@ export type FlowTheme = "dark" | "light"
 
 export type FlowPort = "in" | "out"
 
+export type FlowEdgeEndpoint = "source" | "target"
+
 export type FlowNodeState = "ok" | "warning" | "error" | "disabled"
 
 export interface FlowConditionRule {

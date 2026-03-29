@@ -47,6 +47,7 @@
       :is-panning="isPanning"
       :state-colors="FLOW_STATE_COLORS"
       :edge-path="buildEdgePath"
+      :edge-handle-position="getEdgeHandlePosition"
       @canvas-mousedown="handleCanvasMouseDown"
       @canvas-wheel="handleCanvasWheel"
       @canvas-click="handleCanvasClick"
@@ -54,6 +55,7 @@
       @node-click="handleNodeClick"
       @node-delete="deleteNode"
       @edge-click="deleteEdge"
+      @edge-retarget-start="startEdgeRetarget"
       @port-mousedown="startEdgeDrag"
       @port-mouseup="finishEdgeDrag"
     />
@@ -84,7 +86,7 @@
     <div v-if="mode === 'edit'" class="help-badge">
       🖱 Pan: drag canvas · Scroll: zoom<br />
       ○ Connect: drag output ▷ to input ●<br />
-      🖊 Click node: config · Click edge: delete
+      ↔ Edit link: drag blue handle on link · Click edge: delete
     </div>
   </div>
 </template>
@@ -109,12 +111,14 @@
     visibilityMap,
     statsLabel,
     ghostEdge,
+    isEdgeDragging,
     jsonOutput,
     FLOW_TYPES,
     FLOW_STATE_COLORS,
     NODE_WIDTH,
     NODE_HEIGHT,
     buildEdgePath,
+    getEdgeHandlePosition,
     selectNode,
     clearSelection,
     deleteNode,
@@ -128,6 +132,7 @@
     updatePan,
     zoomAtPoint,
     startEdgeDrag,
+    startEdgeRetarget,
     updateEdgeGhost,
     finishEdgeDrag,
     cancelEdgeDrag,
@@ -270,7 +275,7 @@
       return
     }
 
-    if (ghostEdge.value !== null) {
+    if (isEdgeDragging.value) {
       const worldPoint = toWorld(event.clientX, event.clientY)
       updateEdgeGhost(worldPoint.x, worldPoint.y)
     }
@@ -279,7 +284,7 @@
   function handleGlobalMouseUp(): void {
     isPanning.value = false
     dragNodeId.value = null
-    if (ghostEdge.value !== null) {
+    if (isEdgeDragging.value) {
       cancelEdgeDrag()
     }
     setTimeout(() => {

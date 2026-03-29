@@ -64,6 +64,31 @@
             style="cursor: pointer"
             @click.stop="$emit('edge-click', edge.id)"
           />
+
+          <g v-if="mode === 'edit'">
+            <circle
+              v-if="edgeHandlePosition(edge, 'source')"
+              :cx="edgeHandlePosition(edge, 'source')?.x"
+              :cy="edgeHandlePosition(edge, 'source')?.y"
+              r="5"
+              fill="rgba(79,110,247,.2)"
+              stroke="#4f6ef7"
+              stroke-width="1.2"
+              style="cursor: crosshair"
+              @mousedown.stop="$emit('edge-retarget-start', edge.id, 'source')"
+            />
+            <circle
+              v-if="edgeHandlePosition(edge, 'target')"
+              :cx="edgeHandlePosition(edge, 'target')?.x"
+              :cy="edgeHandlePosition(edge, 'target')?.y"
+              r="5"
+              fill="rgba(79,110,247,.2)"
+              stroke="#4f6ef7"
+              stroke-width="1.2"
+              style="cursor: crosshair"
+              @mousedown.stop="$emit('edge-retarget-start', edge.id, 'target')"
+            />
+          </g>
         </g>
       </g>
 
@@ -210,7 +235,14 @@
 
 <script setup lang="ts">
   import { truncateText } from "~/utils/flow"
-  import type { FlowEdge, FlowMode, FlowNode, FlowPort, FlowTransform } from "~/types/flow"
+  import type {
+    FlowEdge,
+    FlowEdgeEndpoint,
+    FlowMode,
+    FlowNode,
+    FlowPort,
+    FlowTransform,
+  } from "~/types/flow"
 
   const props = defineProps<{
     nodes: FlowNode[]
@@ -225,6 +257,10 @@
     isPanning: boolean
     stateColors: Record<string, string>
     edgePath: (edge: FlowEdge) => string | null
+    edgeHandlePosition: (
+      edge: FlowEdge,
+      endpoint: FlowEdgeEndpoint
+    ) => { x: number; y: number } | null
   }>()
 
   defineEmits<{
@@ -235,6 +271,7 @@
     "node-click": [nodeId: string]
     "node-delete": [nodeId: string]
     "edge-click": [edgeId: string]
+    "edge-retarget-start": [edgeId: string, endpoint: FlowEdgeEndpoint]
     "port-mousedown": [nodeId: string, port: FlowPort]
     "port-mouseup": [nodeId: string, port: FlowPort]
   }>()
@@ -259,6 +296,13 @@
 
   function truncate(value: string, maxLength: number): string {
     return truncateText(value, maxLength)
+  }
+
+  function edgeHandlePosition(
+    edge: FlowEdge,
+    endpoint: FlowEdgeEndpoint
+  ): { x: number; y: number } | null {
+    return props.edgeHandlePosition(edge, endpoint)
   }
 
   function stateColor(state: string): string {

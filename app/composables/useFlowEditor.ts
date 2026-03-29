@@ -9,6 +9,7 @@ import {
 import type {
   FlowConditionRule,
   FlowEdge,
+  FlowEdgeEndpoint,
   FlowMode,
   FlowNode,
   FlowPort,
@@ -19,8 +20,11 @@ import type {
 } from "~/types/flow"
 
 interface DragEdgeState {
+  type: "new" | "retarget"
   sourceId: string
   sourcePort: FlowPort
+  edgeId?: string
+  fixedNodeId?: string
 }
 
 export function useFlowEditor(workflowId = "default-workflow", workflowName = "Main workflow") {
@@ -36,6 +40,7 @@ export function useFlowEditor(workflowId = "default-workflow", workflowName = "M
 
   const ghostEdge = ref<string | null>(null)
   const dragEdgeState = ref<DragEdgeState | null>(null)
+  const isEdgeDragging = computed(() => dragEdgeState.value !== null)
 
   const idCounter = ref(10)
 
@@ -297,8 +302,72 @@ export function useFlowEditor(workflowId = "default-workflow", workflowName = "M
     })
   }
 
+  function updateEdgeEndpoint(
+    edgeId: string,
+    endpoint: FlowEdgeEndpoint,
+    nodeId: string,
+    port: FlowPort
+  ): void {
+    const edge = edges.value.find((item) => item.id === edgeId)
+    if (!edge) {
+      return
+    }
+
+    if (endpoint === "source" && port !== "out") {
+      return
+    }
+
+    if (endpoint === "target" && port !== "in") {
+      return
+    }
+
+    const nextSourceId = endpoint === "source" ? nodeId : edge.sourceId
+    const nextTargetId = endpoint === "target" ? nodeId : edge.targetId
+
+    if (nextSourceId === nextTargetId) {
+      return
+    }
+
+    const duplicateEdge = edges.value.some(
+      (item) =>
+        item.id !== edge.id && item.sourceId === nextSourceId && item.targetId === nextTargetId
+    )
+    if (duplicateEdge) {
+      return
+    }
+
+    edge.sourceId = nextSourceId
+    edge.targetId = nextTargetId
+  }
+
   function startEdgeDrag(nodeId: string, port: FlowPort): void {
-    dragEdgeState.value = { sourceId: nodeId, sourcePort: port }
+    dragEdgeState.value = { type: "new", sourceId: nodeId, sourcePort: port }
+    ghostEdge.value = null
+  }
+
+  function startEdgeRetarget(edgeId: string, endpoint: FlowEdgeEndpoint): void {
+    const edge = edges.value.find((item) => item.id === edgeId)
+    if (!edge) {
+      return
+    }
+
+    dragEdgeState.value =
+      endpoint === "source"
+        ? {
+            type: "retarget",
+            edgeId,
+            sourceId: edge.sourceId,
+            sourcePort: "out",
+            fixedNodeId: edge.targetId,
+          }
+        : {
+            type: "retarget",
+            edgeId,
+            sourceId: edge.targetId,
+            sourcePort: "in",
+            fixedNodeId: edge.sourceId,
+          }
+
     ghostEdge.value = null
   }
 
@@ -315,6 +384,22 @@ export function useFlowEditor(workflowId = "default-workflow", workflowName = "M
     }
 
     const sourcePosition = getPortPosition(sourceNode, dragEdgeState.value.sourcePort)
+
+    if (dragEdgeState.value.type === "retarget" && dragEdgeState.value.fixedNodeId) {
+      const fixedNode = getNodeById(dragEdgeState.value.fixedNodeId)
+      if (!fixedNode) {
+        ghostEdge.value = null
+        return
+      }
+      const fixedPort: FlowPort = dragEdgeState.value.sourcePort === "out" ? "in" : "out"
+      const fixedPosition = getPortPosition(fixedNode, fixedPort)
+      ghostEdge.value =
+        dragEdgeState.value.sourcePort === "out"
+          ? buildBezierPath(targetX, targetY, fixedPosition.x, fixedPosition.y)
+          : buildBezierPath(fixedPosition.x, fixedPosition.y, targetX, targetY)
+      return
+    }
+
     ghostEdge.value =
       dragEdgeState.value.sourcePort === "out"
         ? buildBezierPath(sourcePosition.x, sourcePosition.y, targetX, targetY)
@@ -327,6 +412,14 @@ export function useFlowEditor(workflowId = "default-workflow", workflowName = "M
     }
 
     if (dragEdgeState.value.sourceId === nodeId) {
+      cancelEdgeDrag()
+      return
+    }
+
+    if (dragEdgeState.value.type === "retarget" && dragEdgeState.value.edgeId) {
+      const endpoint: FlowEdgeEndpoint =
+        dragEdgeState.value.sourcePort === "out" ? "source" : "target"
+      updateEdgeEndpoint(dragEdgeState.value.edgeId, endpoint, nodeId, port)
       cancelEdgeDrag()
       return
     }
@@ -367,6 +460,25 @@ export function useFlowEditor(workflowId = "default-workflow", workflowName = "M
     return buildBezierPath(sourcePosition.x, sourcePosition.y, targetPosition.x, targetPosition.y)
   }
 
+  function getEdgeHandlePosition(
+    edge: FlowEdge,
+    endpoint: FlowEdgeEndpoint
+  ): { x: number; y: number } | null {
+    if (endpoint === "source") {
+      const sourceNode = getNodeById(edge.sourceId)
+      if (!sourceNode) {
+        return null
+      }
+      return getPortPosition(sourceNode, "out")
+    }
+
+    const targetNode = getNodeById(edge.targetId)
+    if (!targetNode) {
+      return null
+    }
+    return getPortPosition(targetNode, "in")
+  }
+
   function exportJson(): string {
     return jsonOutput.value
   }
@@ -383,6 +495,7 @@ export function useFlowEditor(workflowId = "default-workflow", workflowName = "M
     visibilityMap,
     statsLabel,
     ghostEdge,
+    isEdgeDragging,
     jsonOutput,
     FLOW_TYPES,
     FLOW_STATE_COLORS,
@@ -392,6 +505,7 @@ export function useFlowEditor(workflowId = "default-workflow", workflowName = "M
     getPortPosition,
     buildBezierPath,
     buildEdgePath,
+    getEdgeHandlePosition,
     evaluateNode,
     selectNode,
     closePanel,
@@ -407,6 +521,7 @@ export function useFlowEditor(workflowId = "default-workflow", workflowName = "M
     updatePan,
     zoomAtPoint,
     startEdgeDrag,
+    startEdgeRetarget,
     updateEdgeGhost,
     finishEdgeDrag,
     cancelEdgeDrag,
