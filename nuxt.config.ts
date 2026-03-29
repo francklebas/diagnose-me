@@ -25,17 +25,10 @@ export default defineNuxtConfig({
     "@vueuse/nuxt",
     "@nuxtjs/i18n",
     "@nuxtjs/tailwindcss",
-    "@nuxtjs/color-mode",
     "@nuxtjs/turnstile",
     "@nuxt/icon",
     "nuxt-lucide-icons",
   ],
-  colorMode: {
-    preference: "system",
-    fallback: "dark",
-    hid: "nuxt-color-mode-script",
-    globalName: "__NUXT_COLOR_MODE__",
-  },
   supabase: {
     redirect: false,
     redirectOptions: {

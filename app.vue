@@ -5,40 +5,19 @@
 </template>
 
 <script setup lang="ts">
-const colorMode = useColorMode()
+  // Initialize dark mode on app startup
+  onMounted(() => {
+    const savedDarkMode = localStorage.getItem("darkMode")
+    const prefersDark = !window.matchMedia("(prefers-color-scheme: light)").matches
 
-// Watch colorMode changes and apply the 'dark' class for Tailwind
-watch(
-  () => colorMode.value,
-  (value) => {
-    if (process.client) {
-      const html = document.documentElement
+    const isDark = savedDarkMode !== null ? savedDarkMode === "true" : prefersDark
 
-      // Remove the 'dark-mode' class that color-mode adds by default
-      html.classList.remove("dark-mode")
-      html.classList.remove("light-mode")
-
-      // Add our custom 'dark' class for Tailwind
-      if (value === "dark") {
-        html.classList.add("dark")
-        html.style.colorScheme = "dark"
-      } else {
-        html.classList.remove("dark")
-        html.style.colorScheme = "light"
-      }
+    if (isDark) {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
     }
-  },
-  { immediate: true }
-)
-
-// Also watch preference changes
-watch(
-  () => colorMode.preference,
-  () => {
-    console.log("Dark mode preference changed to:", colorMode.preference)
-    console.log("Current value:", colorMode.value)
-  }
-)
+  })
 </script>
 
 
